@@ -36,12 +36,12 @@ func (t *tracer) wrapVarsInternal(err error, vars map[string]any, skip int) erro
 
 	var tracedErr *TracedError
 	if errors.As(err, &tracedErr) {
-		stacktrace := captureStacktrace(skip + 1, t.maxVarStackDepth)
+		stacktrace := captureStacktrace(skip + 1, t.maxVarStackDepth, t.trimStackTrace)
 		appendArgs(tracedErr, vars, stacktrace[:t.maxVarStackDepth])
 		return tracedErr
 	}
 
-	stacktrace := captureStacktrace(skip + 1, t.maxStackDepth)
+	stacktrace := captureStacktrace(skip + 1, t.maxStackDepth, t.trimStackTrace)
 
 	tracedErr = &TracedError {
 		stacktrace: stacktrace,

@@ -1,6 +1,9 @@
 package errtrace
 
-import "runtime"
+import (
+	"runtime"
+	"strings"
+)
 
 type StackFrame struct {
 	file string
@@ -8,7 +11,7 @@ type StackFrame struct {
 	function string
 }
 
-func captureStacktrace(skip int, maxFrames int) []StackFrame {
+func captureStacktrace(skip int, maxFrames int, trimStacktrace *string) []StackFrame {
 	pcs := make([]uintptr, maxFrames)
 	n := runtime.Callers(skip+2, pcs)
 	frames := runtime.CallersFrames(pcs[:n])
@@ -21,6 +24,9 @@ func captureStacktrace(skip int, maxFrames int) []StackFrame {
 			line:     frame.Line,
 			function: frame.Function,
 		})
+		if strings.Contains(frame.File, *trimStacktrace) {
+			break
+		}
 		if !more {
 			break
 		}

@@ -12,6 +12,7 @@ type Tracer interface {
 type tracer struct {
 	maxStackDepth    int
 	maxVarStackDepth int
+	trimStackTrace   *string
 
 	formatter func(stacktrace []StackFrame, err error, vars []VarPoint) string
 }
@@ -71,5 +72,10 @@ func (t *TracerBuilder) SetFormatter(
 	formatter func(stacktrace []StackFrame, err error, vars []VarPoint) string,
 ) *TracerBuilder {
 	t.tracer.formatter = formatter
+	return t
+}
+
+func (t *TracerBuilder) TrimStackTrace(containedString string) *TracerBuilder {
+	t.tracer.trimStackTrace = &containedString
 	return t
 }
