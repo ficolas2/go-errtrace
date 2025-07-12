@@ -1,5 +1,6 @@
 # Errtrace
 ## Overview
+![Preview](preview.png)
 
 When debugging an error, you usually want two things:
 
