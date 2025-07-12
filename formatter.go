@@ -7,57 +7,62 @@ import (
 )
 
 const red = "\033[31m"
-const green = "\033[32m"
-const blue = "\033[34m"
-const yellow = "\033[33m"
-const bold = "\033[1m"
+const yellowBold = "\033[1;33m"
+const blueBold = "\033[1;34m"
+const greenBold = "\033[1;32m"
 const reset = "\033[0m"
 
 func defaultFormatErr(stacktrace []StackFrame, err error, vars []VarPoint) string {
 	sb := &strings.Builder{}
 
-	// Error
-	sb.WriteString(red)
-	sb.WriteString(fmt.Sprintf("%v\n", err))
+	formatHeader(sb, err)
+	formatStack(sb, stacktrace)
+	formatVars(sb, vars)
 
-	// Stack trace
-	sb.WriteString(yellow)
-	sb.WriteString(bold)
+	return sb.String()
+}
+
+func formatHeader(sb *strings.Builder, err error) {
+	sb.WriteString(red)
+	fmt.Fprintf(sb, "%v\n", err)
+	sb.WriteString(reset)
+}
+
+func formatStack(sb *strings.Builder, stacktrace []StackFrame) {
+	sb.WriteString(yellowBold)
 	sb.WriteString("Stack trace:\n")
 	sb.WriteString(reset)
 
 	for _, frame := range stacktrace {
-		sb.WriteString("  ")
-		sb.WriteString(frame.function)
-		sb.WriteString("\n")
+		fmt.Fprintf(sb, "  %s\n", frame.function)
+
 		base := filepath.Base(frame.file)
 		rest := frame.file[:len(frame.file)-len(base)]
-		sb.WriteString(fmt.Sprintf("    %s%s%s:%d\n", rest, red, base, frame.line))
+		fmt.Fprintf(sb, "    %s%s%s:%d\n", rest, red, base, frame.line)
 		sb.WriteString(reset)
 	}
+}
 
-	// Variables
-	if len(vars) != 0 {
-		sb.WriteString(yellow)
-		sb.WriteString(bold)
-		sb.WriteString("Tracked variables:\n")
+func formatVars(sb *strings.Builder, vars []VarPoint) {
+	if len(vars) == 0 {
+		return
+	}
+
+	sb.WriteString(yellowBold)
+	sb.WriteString("Tracked variables:\n")
+	sb.WriteString(reset)
+
+	for _, varPoint := range vars {
+		frame := varPoint.stacktrace[0]
+
+		sb.WriteString(greenBold)
+		fmt.Fprintf(sb, "  %s:%d\n", frame.file, frame.line)
 		sb.WriteString(reset)
 
-		for _, varPoint := range vars {
-			frame := varPoint.stacktrace[0]
-			sb.WriteString(green)
-			sb.WriteString(bold)
-			sb.WriteString(fmt.Sprintf("  %s:%d\n", frame.file, frame.line))
-			sb.WriteString(reset)
-
-			for varName, variable := range varPoint.vars {
-				sb.WriteString("  - ")
-				sb.WriteString(blue)
-				sb.WriteString(bold)
-				sb.WriteString(fmt.Sprintf("%s%s: %v\n", varName, reset, variable))
-			}
+		for varName, variable := range varPoint.vars {
+			sb.WriteString("  - ")
+			sb.WriteString(blueBold)
+			fmt.Fprintf(sb, "%s%s: %v\n", varName, reset, variable)
 		}
 	}
-
-	return sb.String()
 }
