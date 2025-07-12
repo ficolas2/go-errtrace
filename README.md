@@ -30,4 +30,5 @@ if err != nil {
 ```
 
 ### Configure
-TODO
+See [configuration Guide](docs/configure.md)
+
