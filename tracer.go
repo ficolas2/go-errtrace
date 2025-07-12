@@ -8,6 +8,10 @@ var defaultTracer Tracer = NewDefaultTracer()
 
 // Entry points to the wrapping. The skip is very important, so that no method from this
 // library gets added to the stack
+func SetDefaultTracer(tracer Tracer) {
+	defaultTracer = tracer
+}
+
 func Wrap(err error) error {
 	return defaultTracer.wrapInternal(err, 1)
 }
