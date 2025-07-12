@@ -8,8 +8,10 @@ type Tracer interface {
 }
 
 type tracer struct {
-	maxStackDepth int
+	maxStackDepth    int
 	maxVarStackDepth int
+
+	formatter func(stacktrace []StackFrame, err error, vars []VarPoint) string
 }
 
 type TracerBuilder struct {
@@ -25,6 +27,7 @@ func NewTracerBuilder() *TracerBuilder {
 		tracer: tracer{
 			maxStackDepth:    32,
 			maxVarStackDepth: 1,
+			formatter:        defaultFormatErr,
 		},
 	}
 }
@@ -52,10 +55,19 @@ func (t *TracerBuilder) Build() (Tracer, error) {
 	return &t.tracer, nil
 }
 
-func (t *TracerBuilder) MaxVarStackDepth(m int) {
+func (t *TracerBuilder) MaxVarStackDepth(m int) *TracerBuilder {
 	t.tracer.maxStackDepth = m
+	return t
 }
 
-func (t *TracerBuilder) MaxStackDepth(m int) {
+func (t *TracerBuilder) MaxStackDepth(m int) *TracerBuilder {
 	t.tracer.maxVarStackDepth = m
+	return t
+}
+
+func (t *TracerBuilder) SetFormatter(
+	formatter func(stacktrace []StackFrame, err error, vars []VarPoint) string,
+) *TracerBuilder {
+	t.tracer.formatter = formatter
+	return t
 }

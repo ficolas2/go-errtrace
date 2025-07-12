@@ -14,4 +14,19 @@ It uses a backtrace to attach context (position and variables) to errors. This a
 For example, you wouldn’t trace a “not found” error if it's part of normal control flow. But you would trace unexpected or undesired failures that indicate something went wrong.
 
 ## Usage
+### Trace errors
+To trace an error:
+```go
+if err != nil {
+    return errtrace.Wrap(err)
+}
+```
+You can also add variables:
+```go
+if err != nil {
+    return errtrace.WrapVar(err, map[string]any{"userId", userId})
+}
+```
+
+### Configure
 TODO

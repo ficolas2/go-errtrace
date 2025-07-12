@@ -10,7 +10,7 @@ func ErrAtDepth(n int) error {
 	if n == 0 {
 		return Wrap(errors.New("test error"))
 	}
-	return Wrap(ErrAtDepth(n - 1))
+	return WrapVars(ErrAtDepth(n - 1), map[string]any{"remaining iters": n})
 }
 
 func TestMessage(t *testing.T) {
@@ -38,3 +38,15 @@ func TestStackTrace(t *testing.T) {
 		}
 	}
 }
+
+func TestFormatter(t *testing.T) {
+	err := ErrAtDepth(3)
+
+	var tracedErr *TracedError
+	if !errors.As(err, &tracedErr) {
+		t.Errorf("expected error to be of type *TracedError, got: %T", err)
+	}
+
+	panic(tracedErr.ErrorFormated())
+	
+} 

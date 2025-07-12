@@ -14,6 +14,8 @@ type TracedError struct {
 	stacktrace []StackFrame
 	err        error
 	vars       []VarPoint
+
+	formatter func (stacktrace []StackFrame, err error, vars []VarPoint) string
 }
 
 func (e *TracedError) Error() string {
@@ -21,8 +23,7 @@ func (e *TracedError) Error() string {
 }
 
 func (e *TracedError) ErrorFormated() string {
-	// TODO
-	return ""
+	return e.formatter(e.stacktrace, e.err, e.vars)
 }
 
 func (e *TracedError) Unwrap() error {
@@ -60,6 +61,7 @@ func (t *tracer) WrapVars(err error, vars map[string]any) error {
 	tracedErr = &TracedError {
 		stacktrace: stacktrace,
 		err:        err,
+		formatter: t.formatter,
 	}
 	appendArgs(tracedErr, vars, stacktrace[:t.maxVarStackDepth])
 
