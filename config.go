@@ -5,6 +5,8 @@ import "errors"
 type Tracer interface {
 	Wrap(err error) error
 	WrapVars(err error, vars map[string]any) error
+	wrapInternal(err error, skip int) error
+	wrapVarsInternal(err error, vars map[string]any, skip int) error
 }
 
 type tracer struct {

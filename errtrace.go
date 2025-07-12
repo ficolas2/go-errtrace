@@ -32,31 +32,42 @@ func (e *TracedError) Unwrap() error {
 
 var defaultTracer Tracer = NewDefaultTracer()
 
+// Entry points to the wrapping. The skip is very important, so that no method from this
+// library gets added to the stack
 func Wrap(err error) error {
-	return defaultTracer.Wrap(err)
+	return defaultTracer.wrapInternal(err, 1)
 }
 
 func WrapVars(err error, vars map[string]any) error {
-	return defaultTracer.WrapVars(err, vars)
+	return defaultTracer.wrapVarsInternal(err, vars, 1)
 }
 
 func (t *tracer) Wrap(err error) error {
-	return t.WrapVars(err, nil)
+	return t.wrapVarsInternal(err, nil, 1)
 }
 
 func (t *tracer) WrapVars(err error, vars map[string]any) error {
+	return t.wrapVarsInternal(err, vars, 1)
+}
+
+// Internal wrap functions
+func (t *tracer) wrapInternal(err error, skip int) error {
+	return t.wrapVarsInternal(err, nil, skip + 1)
+}
+
+func (t *tracer) wrapVarsInternal(err error, vars map[string]any, skip int) error {
 	if err == nil {
 		return nil
 	}
 
 	var tracedErr *TracedError
 	if errors.As(err, &tracedErr) {
-		stacktrace := captureStacktrace(2, t.maxVarStackDepth)
+		stacktrace := captureStacktrace(skip + 1, t.maxVarStackDepth)
 		appendArgs(tracedErr, vars, stacktrace[:t.maxVarStackDepth])
 		return tracedErr
 	}
 
-	stacktrace := captureStacktrace(2, t.maxStackDepth)
+	stacktrace := captureStacktrace(skip + 1, t.maxStackDepth)
 
 	tracedErr = &TracedError {
 		stacktrace: stacktrace,
